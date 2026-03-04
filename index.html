@@ -15,6 +15,28 @@ html, body {
   background: #f2f2f2;
   transition: 0.3s;
 }
+@media (max-height: 750px) {
+  .mode-buttons {
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+  .mode-buttons.show {
+    transform: translateY(0);
+  }
+}
+#modeHoverArea {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 25px;
+  z-index: 5;
+}
 .container {
   position: absolute;
   top: 10px;
@@ -81,8 +103,29 @@ body.dark select:focus {
   box-shadow: inset 0 0 0 1px #ffffff;
   border-color: transparent !important;
 }
-textarea {
-  height: clamp(32px, 5vh, 60px);
+#anomalie { 
+  height: 42px; 
+  resize: none; 
+}
+#illico { 
+  height: 42px; 
+  resize: none; 
+}
+#fait { 
+  height: 50px; 
+  resize: none; 
+}
+#capella { 
+  height: 42px; 
+  resize: none; 
+}
+#cpa { 
+  height: 42px; 
+  resize: none; 
+}
+#expert { 
+  height: 50px; 
+  resize: none; 
 }
 .checkbox-line {
   margin-top: 6px;
@@ -107,8 +150,66 @@ textarea {
   border-radius: 12px;
   min-height: clamp(60px, 12vh, 110px);
 }
+#counterGroup {
+  flex: 2;
+  display: flex;
+  gap: 6px;
+}
+.counterBtn {
+  flex: 1;
+  background: #999;
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  font-weight: bold;
+  font-size: 15px;
+  position: relative;
+}
+.counterBtn.green {
+  box-shadow: 0 0 6px rgba(0, 255, 100, 0.6);
+}
+.counterBtn.yellow {
+  box-shadow: 0 0 6px rgba(255, 210, 0, 0.7);
+}
+.counterBtn span {
+  flex: 1;
+  text-align: center;
+}
+.counterAction {
+  flex: 0 0 28px;
+  padding: 6px 0;
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+body.dark .counterBtn {
+  background: #555;
+}
 .bottom-buttons button {
   font-size: 15px;
+}
+.dark-top {
+  flex: 0 0 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ddd;
+}
+.counterBtn.holding {
+  opacity: 0.6;
+  transition: 0.2s;
+}
+body.dark .dark-top {
+  background: #444;
+  color: white;
 }
 #copyBtn { background: black; color: white; }
 #resetBtn { background: #999; color: white; }
@@ -144,12 +245,14 @@ body.dark .signature { color: #666; }
 </style>
 </head>
 <body>
+<div id="modeHoverArea"></div>
 <div class="container">
   <div class="mode-buttons">
-    <button class="mode active" id="modeSolde" onclick="setMode('SOLDE')">MODE SOLDE</button>
-    <button class="mode" id="modePre" onclick="setMode('PRE')">MODE PRE</button>
-    <button class="mode" id="modeQuick" onclick="setMode('QUICK')">M002</button>
-  </div>
+  <button class="mode active" id="modeSolde" onclick="setMode('SOLDE')">MODE SOLDE</button>
+  <button class="mode" id="modePre" onclick="setMode('PRE')">MODE PRE</button>
+  <button class="mode" id="modeQuick" onclick="setMode('QUICK')">M002</button>
+  <button id="darkModeToggle" class="dark-top" onclick="toggleDarkMode()">🌙</button>
+</div>
   <div class="template-buttons">
     <button class="template" onclick="copyTemplate('F120')">F120</button>
     <button class="template" onclick="copyTemplate('F130')">F130</button>
@@ -174,7 +277,8 @@ body.dark .signature { color: #666; }
       <select id="illicoSelect" onchange="applyIllicoPreset(this.value)">
         <option value="">-- Choisir --</option>
         <option value="À jour + Ping OK">À jour + Ping OK</option>
-        <option value=" + Ping KO"> + Ping KO</option>
+        <option value="Réconcilié + Ping OK">Réconcilié + Ping OK</option>
+        <option value="+ Ping KO">+ Ping KO</option>
         <option value="Historique">Historique</option>
       </select>
       <textarea id="illico" placeholder="-- Illico --"></textarea>
@@ -208,20 +312,60 @@ Traitement: Bonjour, le changement d'adresse a bien été effectué. Merci pour 
       <button onclick="copierTexteRapide(this)">Bonjour, le changement d'adresse a bien été effectué. Merci pour votre confiance. Cordialement.</button>
     </div>
   </div>
-  <div class="bottom-buttons">
-    <button id="copyBtn" onclick="copierTexte()">Copier tout</button>
-    <button id="resetBtn" onclick="resetAll()">Reset</button>
-    <button id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+<div class="bottom-buttons">
+  <button id="copyBtn" onclick="copierTexte()">Copier tout</button>
+  <button id="resetBtn" onclick="resetAll()">Reset</button>
+  <div id="counterGroup">
+  <div class="counterBtn green"
+       onmousedown="startHoldReset(1)"
+       onmouseup="cancelHoldReset()"
+       onmouseleave="cancelHoldReset()"
+       ontouchstart="startHoldReset(1)"
+       ontouchend="cancelHoldReset()">
+    <button class="counterAction" onclick="decrementCounter1(event)">−</button>
+    <span id="counterValue1">0</span>
+    <button class="counterAction" onclick="incrementCounter1(event)">+</button>
+  </div>
+  <div class="counterBtn yellow"
+       onmousedown="startHoldReset(2)"
+       onmouseup="cancelHoldReset()"
+       onmouseleave="cancelHoldReset()"
+       ontouchstart="startHoldReset(2)"
+       ontouchend="cancelHoldReset()">
+    <button class="counterAction" onclick="decrementCounter2(event)">−</button>
+    <span id="counterValue2">0</span>
+    <button class="counterAction" onclick="incrementCounter2(event)">+</button>
   </div>
 </div>
 <div class="signature">© 2026 - Créé par IdrenSound</div>
 <script>
+const modeButtons = document.querySelector('.mode-buttons');
+const hoverArea = document.getElementById('modeHoverArea');
+hoverArea.addEventListener('mouseenter', () => {
+  modeButtons.classList.add('show');
+});
+hoverArea.addEventListener('mouseleave', () => {
+  modeButtons.classList.remove('show');
+});
 let currentMode = "SOLDE";
 const presets = {
-  SOLDE: ["Analyse + Solde via assistant CRI () + Terminé + PDL à jour"],
+  SOLDE: ["Analyse + Solde via assistant CRI () -> Terminé + PDL à jour","Analyse + Solde via assistant CRI (PRG sur CCB, libellé matériel corrigé) -> Terminé + PDL à jour","Analyse + Solde via assistant CRI (Modification des services souscrits: ) -> Terminé + PDL à jour -> M013  -> Suprression des frais facturés à torts"],
   PRE: ["Analyse + 1er appel KO + MV -> Relance","Analyse + 1er appel OK + RDV + SMS"]
 };
-const anomaliePresets = { SOLDE: [], PRE: [] };
+const anomaliePresets = {
+  SOLDE: [
+    "les informations transmises ne permettent pas d'identifier un matériel de catégorie CCB",
+    "il est impossible de rebrancher un branchement qui n'est pas hors service",
+    "le réglage de la protection est incohérent avec la puissance souscrite du contrat de référence",
+    "différence entre puissance réglée de référence et puissance souscrite",
+],
+  PRE: [
+    "ECH004 : Ordre non reçu par le compteur x",
+    "ECH003 : Ordre non délivré par NOC au K x",
+    "REJ427 : Compteur non communicant x",
+    "REJ012 : Commande A_Date (ou A_date_express) en cours sur le même PDS et sur au moins un même objet programmable pour une date postérieure ou égale à la date d'exécution souhaitée"
+  ]
+};
 function setMode(mode){
   currentMode = mode;
   document.querySelectorAll(".mode").forEach(btn => btn.classList.remove("active"));
@@ -280,7 +424,64 @@ function resetAll(){
   setMode("SOLDE");
 }
 function toggleDarkMode(){document.body.classList.toggle("dark"); const b=document.getElementById("darkModeToggle"); if(document.body.classList.contains("dark")){b.innerText="☀️"; localStorage.setItem("darkMode","on");} else{b.innerText="🌙"; localStorage.setItem("darkMode","off");}}
-window.onload=function(){if(localStorage.getItem("darkMode")==="on"){document.body.classList.add("dark");document.getElementById("darkModeToggle").innerText="☀️";}}; setMode("SOLDE");
+let counter1 = parseInt(localStorage.getItem("counterValue1")) || 0;
+function updateCounter1() {
+  document.getElementById("counterValue1").innerText = counter1;
+  localStorage.setItem("counterValue1", counter1);
+}
+function incrementCounter1(e) {
+   e.stopPropagation();
+  counter1++;
+  updateCounter1();
+}
+function decrementCounter1(e) {
+     e.stopPropagation();
+  if (counter1 > 0) counter1--;
+  updateCounter1();
+}
+let counter2 = parseInt(localStorage.getItem("counterValue2")) || 0;
+function updateCounter2() {
+  document.getElementById("counterValue2").innerText = counter2;
+  localStorage.setItem("counterValue2", counter2);
+}
+function incrementCounter2(e) {
+   e.stopPropagation();
+  counter2++;
+  updateCounter2();
+}
+function decrementCounter2(e) {
+   e.stopPropagation();
+  if (counter2 > 0) counter2--;
+  updateCounter2();
+}
+let holdTimer = null;
+let holdTarget = null;
+function startHoldReset(counterNumber) {
+  holdTarget = counterNumber;
+  const element = document.querySelectorAll(".counterBtn")[counterNumber - 1];
+  element.classList.add("holding");
+  holdTimer = setTimeout(() => {
+    if (counterNumber === 1) {
+      counter1 = 0;
+      updateCounter1();
+    } else {
+      counter2 = 0;
+      updateCounter2();
+    }
+  }, 1200); // 1.2 secondes
+}
+function cancelHoldReset() {
+  clearTimeout(holdTimer);
+  document.querySelectorAll(".counterBtn").forEach(el => el.classList.remove("holding"));
+}
+window.onload=function(){
+  if(localStorage.getItem("darkMode")==="on"){
+    document.body.classList.add("dark");
+    document.getElementById("darkModeToggle").innerText="☀️";
+  }
+  updateCounter1();
+  updateCounter2();
+}; setMode("SOLDE");
 document.addEventListener("click", function(e) {
   if (e.target.matches(".addPresetBtn, #quickModeBlock button, .template, #copyBtn, #resetBtn")) {
     e.target.classList.add("blink");
