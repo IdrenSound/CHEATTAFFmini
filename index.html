@@ -293,17 +293,17 @@ body.dark .signature { color: #666; }
       </select>
       <textarea id="fait"></textarea>
       <div class="checkbox-line">
+        <label><input type="checkbox" id="expertCheck" onchange="toggleField('expertBlock', this)"> Expert</label>
+      </div>
+      <div id="expertBlock" class="optional-block"><textarea id="expert"></textarea></div>
+    </div>
+      <div class="checkbox-line">
         <label><input type="checkbox" id="capellaCheck" onchange="toggleField('capellaBlock', this)"> Capella</label>
       </div>
       <div id="capellaBlock" class="optional-block"><textarea id="capella"></textarea></div>
       <div class="checkbox-line">
   <label><input type="checkbox" id="cpaCheck"> CPA</label>
-</div>
-      <div class="checkbox-line">
-        <label><input type="checkbox" id="expertCheck" onchange="toggleField('expertBlock', this)"> Expert</label>
-      </div>
-      <div id="expertBlock" class="optional-block"><textarea id="expert"></textarea></div>
-    </div>
+</div>      
     <div id="quickModeBlock" class="optional-block">
       <button onclick="copierTexteRapide(this)">M002  ADRESSE RECEVABLE</button>
       <button onclick="copierTexteRapide(this)">Demande :
@@ -502,6 +502,7 @@ document.addEventListener("click", function(e) {
 </script>
 </body>
 </html>
+
 
 
 
